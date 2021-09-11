@@ -1,7 +1,10 @@
 #! /usr/bin/env python3
 
+# ASK HOW TO REUPLOAD CHANGES TO GITHUB REPO FOR THIS FILE ONLY?
+
 import subprocess
 import socket
+import sys
 
 HOST = '0.0.0.0' # does this need to be our C2 server?
 PORT = 5555 # random port it does not matter
@@ -19,8 +22,9 @@ print(f'[*] client connected {client_addr}')
 #client_s.send('welcome'.encode())
 
 # custom menu option for us
-#print("Welcome to HukaLuka!")
+print("\nWelcome to HukaLuka!\n")
 
+'''
 print(''
 '\n******************************************************************'
 '\n*                      __          __              __            *'
@@ -31,10 +35,11 @@ print(''
 '\n*                                                                *'
 '\n* HukaLuka Ver. 7.7                                              *'
 '\n* Coded by Aaron, Abdi and Raja                                  *'
-'\n******************************************************************')
+'\n******************************************************************\n')
+'''
 
 def menu():
-    print("\n[1] ls")
+    print("[1] ls")
     print("[2] hostname")
     print("[3] ip a")
     print("[0] Exit the program.")
@@ -45,6 +50,7 @@ option = int(input("\nEnter your option: "))
 l1 = subprocess.run(['ls'], stdout=subprocess.PIPE, text=True)
 l2 = subprocess.run('hostname', stdout=subprocess.PIPE, text=True)
 l3 = subprocess.run(['ip', 'a'], stdout=subprocess.PIPE, text=True)
+
 
 while option != 0:
     if option == 1:
@@ -64,7 +70,7 @@ while option != 0:
 
     #print()
     menu()
-    option = int(input("Enter your option: "))
+    option = int(input("\nEnter your option: "))
 
 print("\nThanks for using HukaLuka!")
 
