@@ -4,8 +4,9 @@ import socket
 import sys
 import threading
 from queue import Queue
-#import signal
+import signal
 import code
+import time
 
 
 NUMBER_OF_THREADS = 2
@@ -177,9 +178,27 @@ def send_commands(conn):
             client_response = str(conn.recv(20480), "utf-8")
             print(client_response, end='')
 
+'''
+# exit cleanly
+def signal_handler(signal, frame):
+    print('You pressed Ctrl+C!')
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+print('Press Ctrl+C')
+forever = threading.Event()
+forever.wait()
+'''
 
 def main():
     create_workers()
     create_jobs()
 
-main()
+
+
+if __name__ == "__main__":
+   try:
+      main()
+   except KeyboardInterrupt:
+      # do nothing here
+      print("\n\nThank you for using HukaLuka!")
