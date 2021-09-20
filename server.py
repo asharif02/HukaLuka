@@ -42,6 +42,7 @@ def socket_bind():
         global s
         #print("Binding socket to port : " + str(port))
         print("[*] listening as " + str(host) + ':' + str(port))
+        write("[*] listening as " + str(host) + ':' + str(port))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((host, port))
         s.listen(5)
