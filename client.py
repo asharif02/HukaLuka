@@ -18,7 +18,7 @@ def socket_create():
         global host
         global port
         global s
-        host = '127.0.0.1' # Server ip goes here
+        host = '206.189.189.188' # Server ip goes here
         port = 5555
         s = socket.socket()
     except socket.error as msg:
