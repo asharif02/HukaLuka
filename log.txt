@@ -7,4 +7,14 @@
 
 -----clients-----
 0   127.0.0.1   55390
-[*] listening as 0.0.0.0:5555[*] listening as 0.0.0.0:5555
+[*] listening as 0.0.0.0:5555[*] listening as 0.0.0.0:5555[*] listening as :5555[*] listening as :5555[*] listening as :5555[*] listening as :5555
+connection has been established: 127.0.0.1
+-------clients-------
+0   127.0.0.1    58666
+you are now connected to: 127.0.0.1
+-------clients-------
+0   127.0.0.1    58666
+you are now connected to: 127.0.0.1you are now connected to: 127.0.0.1[*] listening as :5555
+connection has been established: 127.0.0.1
+-------clients-------
+0   127.0.0.1    58668
