@@ -29,7 +29,7 @@ def write(data):
     with open('log.txt', 'a') as f:
         f.write(data)
 
-# Create socket
+# create socket
 def socket_create():
     try:
         global host
@@ -43,7 +43,7 @@ def socket_create():
         print("Socket creation error : " + str(msg))
 
 
-# Bind socket to port and wait for client
+# bind socket to port and wait for client
 def socket_bind():
     try:
         global host
