@@ -134,8 +134,8 @@ def send_target_commands(conn):
             if len(str.encode(cmd)) > 0:
                 conn.send(str.encode(cmd))
                 client_response = str(conn.recv(20480), "utf-8")
-                #write(client_response, end='')
                 print(client_response, end='')
+                write(client_response)
         except:
             print("Connection lost")
             break

@@ -18,3 +18,16 @@ you are now connected to: 127.0.0.1you are now connected to: 127.0.0.1[*] listen
 connection has been established: 127.0.0.1
 -------clients-------
 0   127.0.0.1    58668
+[*] listening as :5555
+connection has been established: 127.0.0.1
+-------clients-------
+0   127.0.0.1    33976
+kali
+/home/kali/HukaLuka> total 32
+-rwxr-xr-x 1 kali kali 3414 Sep 22 11:31 clientcopy.py
+-rwxr-xr-x 1 kali kali 2216 Sep 22 11:33 client.py
+-rw-r--r-- 1 kali kali  757 Sep 22 11:33 log.txt
+-rw-r--r-- 1 kali kali   12 Sep 22 11:31 README.md
+-rwxr-xr-x 1 kali kali 5633 Sep 22 11:31 servercopy.py
+-rwxr-xr-x 1 kali kali 6038 Sep 22 11:33 server.py
+/home/kali/HukaLuka> 
