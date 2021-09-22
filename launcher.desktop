@@ -1,0 +1,6 @@
+[Desktop Entry]
+Version = 1.0
+Name = luka
+Exec = /home/kali/Downloads/client2.py
+Icon = /home/kali/testing/77.jpg
+Type = Application
