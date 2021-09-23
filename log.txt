@@ -30,4 +30,9 @@ kali
 -rw-r--r-- 1 kali kali   12 Sep 22 11:31 README.md
 -rwxr-xr-x 1 kali kali 5633 Sep 22 11:31 servercopy.py
 -rwxr-xr-x 1 kali kali 6038 Sep 22 11:33 server.py
+/home/kali/HukaLuka> [*] listening as :5555[*] listening as :5555
+connection has been established: 127.0.0.1
+-------clients-------
+0   127.0.0.1    47794
+abdi
 /home/kali/HukaLuka> 
